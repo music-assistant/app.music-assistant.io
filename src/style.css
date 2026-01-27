@@ -1,15 +1,40 @@
+/* Music Assistant Remote Connection Portal
+   Styling to match the Music Assistant frontend */
+
 :root {
-  --color-bg: #1a1a2e;
-  --color-surface: #252542;
-  --color-surface-hover: #2d2d4a;
-  --color-primary: #4a9eff;
-  --color-primary-hover: #3a8eef;
-  --color-text: #ffffff;
-  --color-text-secondary: #a0a0b0;
-  --color-error: #ff6b6b;
-  --color-border: #3a3a5a;
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Light theme - matching frontend */
+  --ma-background: #f5f5f5;
+  --ma-foreground: #000000;
+  --ma-card: #ffffff;
+  --ma-card-foreground: #000000;
+  --ma-primary: #03a9f4;
+  --ma-primary-foreground: #ffffff;
+  --ma-secondary: #e7e7e7;
+  --ma-text-secondary: rgba(0, 0, 0, 0.6);
+  --ma-text-tertiary: rgba(0, 0, 0, 0.4);
+  --ma-border: rgba(0, 0, 0, 0.1);
+  --ma-input-bg: rgba(0, 0, 0, 0.03);
+  --ma-input-focus-bg: rgba(3, 169, 244, 0.05);
+  --ma-error: #d32f2f;
+  --ma-radius: 12px;
+  --ma-radius-sm: 10px;
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ma-background: #181818;
+    --ma-foreground: #ffffff;
+    --ma-card: #232323;
+    --ma-card-foreground: #ffffff;
+    --ma-secondary: #2d2d2d;
+    --ma-text-secondary: rgba(255, 255, 255, 0.7);
+    --ma-text-tertiary: rgba(255, 255, 255, 0.4);
+    --ma-border: rgba(255, 255, 255, 0.08);
+    --ma-input-bg: rgba(255, 255, 255, 0.05);
+    --ma-input-focus-bg: rgba(3, 169, 244, 0.08);
+    --ma-error: #ff6b6b;
+  }
 }
 
 * {
@@ -21,35 +46,54 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--ma-background);
+  color: var(--ma-foreground);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   padding: 24px;
 }
 
+@media (max-width: 480px) {
+  #app {
+    padding: 12px;
+  }
+}
+
+/* Views */
 .view {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  animation: fadeIn 0.3s ease-in;
 }
 
 .view.hidden {
   display: none;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Logo */
 .logo-container {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,36 +109,69 @@ body {
   filter: grayscale(1) opacity(0.5);
 }
 
+@media (max-width: 480px) {
+  .logo-container {
+    width: 60px;
+    height: 60px;
+  }
+}
+
 /* Typography */
 h1 {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   margin: 0;
+  text-align: center;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 1.25rem;
   font-weight: 600;
+  text-align: center;
 }
 
 h3 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ma-foreground);
   margin-bottom: 16px;
 }
 
 .subtitle {
-  color: var(--color-text-secondary);
-  font-size: 16px;
+  color: var(--ma-text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
 }
 
 /* Cards */
 .card {
   width: 100%;
-  background: var(--color-surface);
-  border-radius: var(--radius);
+  background: var(--ma-card);
+  border: 1px solid var(--ma-border);
+  border-radius: var(--ma-radius);
   padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px;
+  }
 }
 
 .server-info {
@@ -102,16 +179,18 @@ h3 {
   flex-direction: column;
   gap: 4px;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .server-name {
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 500;
+  color: var(--ma-foreground);
 }
 
 .server-version {
-  font-size: 14px;
-  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  color: var(--ma-text-secondary);
 }
 
 /* Buttons */
@@ -120,13 +199,14 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 14px 24px;
   border: none;
-  border-radius: var(--radius-sm);
-  font-size: 16px;
+  border-radius: var(--ma-radius-sm);
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
 .btn:disabled {
@@ -135,21 +215,28 @@ h3 {
 }
 
 .btn.primary {
-  background: var(--color-primary);
-  color: white;
+  background: var(--ma-primary);
+  color: var(--ma-primary-foreground);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  background: #0288d1;
+  transform: translateY(-1px);
+}
+
+.btn.primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn.secondary {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
+  background: var(--ma-secondary);
+  color: var(--ma-foreground);
+  border: 1px solid var(--ma-border);
 }
 
 .btn.secondary:hover:not(:disabled) {
-  background: var(--color-border);
+  background: var(--ma-input-focus-bg);
+  border-color: var(--ma-primary);
 }
 
 .btn.full-width {
@@ -173,35 +260,39 @@ h3 {
 /* Form elements */
 label {
   display: block;
-  font-size: 14px;
-  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ma-foreground);
   margin-bottom: 8px;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-size: 16px;
-  font-family: monospace;
-  letter-spacing: 1px;
+  padding: 14px 16px;
+  background: var(--ma-input-bg);
+  border: 1px solid var(--ma-border);
+  border-radius: var(--ma-radius-sm);
+  color: var(--ma-foreground);
+  font-size: 1rem;
+  font-family: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", monospace;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-bottom: 16px;
+  transition: all 0.2s ease;
 }
 
 input[type="text"]:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--ma-primary);
+  background: var(--ma-input-focus-bg);
+  box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
 }
 
 input[type="text"]::placeholder {
-  color: var(--color-text-secondary);
-  opacity: 0.5;
+  color: var(--ma-text-tertiary);
   text-transform: none;
   letter-spacing: normal;
+  font-family: inherit;
 }
 
 /* Divider */
@@ -218,20 +309,21 @@ input[type="text"]::placeholder {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--color-border);
+  background: var(--ma-border);
 }
 
 .divider span {
-  color: var(--color-text-secondary);
-  font-size: 14px;
+  color: var(--ma-text-tertiary);
+  font-size: 0.875rem;
+  text-transform: lowercase;
 }
 
 /* QR Reader */
 .qr-reader {
   width: 100%;
   aspect-ratio: 1;
-  background: var(--color-bg);
-  border-radius: var(--radius-sm);
+  background: var(--ma-background);
+  border-radius: var(--ma-radius-sm);
   overflow: hidden;
   margin-top: 16px;
 }
@@ -244,8 +336,8 @@ input[type="text"]::placeholder {
 .spinner {
   width: 48px;
   height: 48px;
-  border: 3px solid var(--color-surface);
-  border-top-color: var(--color-primary);
+  border: 3px solid var(--ma-border);
+  border-top-color: var(--ma-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -258,34 +350,39 @@ input[type="text"]::placeholder {
 
 /* Error */
 .error-message {
-  color: var(--color-error);
+  color: var(--ma-error);
   text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
 }
 
 /* Help text */
 .help-text {
-  font-size: 14px;
-  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  color: var(--ma-text-secondary);
   text-align: center;
   line-height: 1.5;
 }
 
 .help-text strong {
-  color: var(--color-text);
+  color: var(--ma-foreground);
+  font-weight: 500;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  #app {
-    padding: 16px;
-  }
+/* Status text in connecting view */
+#connecting p,
+#loading p {
+  color: var(--ma-text-secondary);
+  font-size: 0.875rem;
+}
 
-  .logo-container {
-    width: 100px;
-    height: 100px;
-  }
+/* Error view specific styles */
+#error .card {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
 
-  h1 {
-    font-size: 24px;
-  }
+#error .btn.primary {
+  margin-top: 8px;
 }
