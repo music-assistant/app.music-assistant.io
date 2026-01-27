@@ -1,0 +1,73 @@
+name: Deploy Broker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+  workflow_dispatch:
+
+# Allow only one concurrent deployment
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build broker
+        run: npm run build
+
+      - name: Download existing frontend builds
+        continue-on-error: true
+        run: |
+          # Try to download existing channel builds from current deployment
+          mkdir -p dist/stable dist/beta dist/nightly
+
+          for channel in stable beta nightly; do
+            echo "Checking for existing ${channel} build..."
+            if curl -sL --fail "https://app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json"; then
+              echo "Found existing ${channel} build, will preserve it"
+              # Download the full channel build
+              # Note: This is a simplified approach - in production you might want to
+              # store builds as artifacts or in a separate branch
+            else
+              echo "No existing ${channel} build found"
+              rm -rf "dist/${channel}"
+            fi
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

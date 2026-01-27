@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="description" content="Connect to your Music Assistant server remotely" />
+    <title>Music Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Loading state -->
+      <div id="loading" class="view">
+        <div class="logo-container">
+          <img src="/logo.svg" alt="Music Assistant" class="logo" />
+        </div>
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
+
+      <!-- Connection UI -->
+      <div id="connect" class="view hidden">
+        <div class="logo-container">
+          <img src="/logo.svg" alt="Music Assistant" class="logo" />
+        </div>
+        <h1>Music Assistant</h1>
+        <p class="subtitle">Connect to your server</p>
+
+        <!-- New connection -->
+        <div id="new-connection" class="card">
+          <h3>Connect to a server</h3>
+
+          <!-- QR Scanner -->
+          <div id="qr-section">
+            <button id="scan-qr-btn" class="btn primary full-width">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 11h2v2H3v-2zm16 0h2v2h-2v-2zm-8 8h2v2h-2v-2zm0-16h2v2h-2V3zM3 3h6v6H3V3zm2 2v2h2V5H5zm14-2h-6v6h6V3zm-2 2v2h-2V5h2zM3 15h6v6H3v-6zm2 2v2h2v-2H5zm16 0h-2v2h-2v-2h2v-2h2v2zm-4 2v2h-2v-2h2zm2-8h2v4h-4v-2h2v-2zm-4 0h2v2h-2v-2zm-6 0h2v4H7v-2h2v-2z"/>
+              </svg>
+              Scan QR Code
+            </button>
+            <div id="qr-reader" class="qr-reader hidden"></div>
+          </div>
+
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <!-- Manual entry -->
+          <div id="manual-section">
+            <label for="remote-id-input">Enter Remote ID</label>
+            <input
+              type="text"
+              id="remote-id-input"
+              placeholder="XXXXXXXXXXXXXXXXXXXXXXXXXX"
+              maxlength="26"
+              autocomplete="off"
+              autocapitalize="characters"
+            />
+            <button id="connect-btn" class="btn primary full-width" disabled>
+              Connect
+            </button>
+          </div>
+        </div>
+
+        <!-- Help text -->
+        <p class="help-text">
+          Find your Remote ID in Music Assistant settings under
+          <strong>Remote Access</strong>
+        </p>
+      </div>
+
+      <!-- Connecting state -->
+      <div id="connecting" class="view hidden">
+        <div class="logo-container">
+          <img src="/logo.svg" alt="Music Assistant" class="logo" />
+        </div>
+        <div class="spinner"></div>
+        <p id="connecting-status">Connecting...</p>
+        <button id="cancel-btn" class="btn secondary">Cancel</button>
+      </div>
+
+      <!-- Error state -->
+      <div id="error" class="view hidden">
+        <div class="logo-container">
+          <img src="/logo.svg" alt="Music Assistant" class="logo error" />
+        </div>
+        <h2>Connection Failed</h2>
+        <p id="error-message" class="error-message"></p>
+
+        <!-- Saved connection info (shown when auto-reconnect fails) -->
+        <div id="saved-connection" class="card hidden">
+          <div class="server-info">
+            <span id="saved-server-name" class="server-name"></span>
+            <span id="saved-server-version" class="server-version"></span>
+          </div>
+          <button id="forget-btn" class="btn secondary full-width">Forget this server</button>
+        </div>
+
+        <button id="retry-btn" class="btn primary">Try Again</button>
+      </div>
+    </div>
+
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
