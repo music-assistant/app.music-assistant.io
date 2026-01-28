@@ -27,7 +27,7 @@ jobs:
   deploy-channel:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     environment:
@@ -53,6 +53,27 @@ jobs:
           echo "frontend_version=${FRONTEND_VERSION}" >> $GITHUB_OUTPUT
           echo "Channel: ${CHANNEL}"
           echo "Frontend version: ${FRONTEND_VERSION}"
+
+      - name: Update channels.json
+        run: |
+          CHANNEL="${{ steps.params.outputs.channel }}"
+          FRONTEND_VERSION="${{ steps.params.outputs.frontend_version }}"
+
+          # Update channels.json with the new version
+          jq --arg channel "$CHANNEL" --arg version "$FRONTEND_VERSION" \
+            '.[$channel] = $version' channels.json > channels.json.tmp
+          mv channels.json.tmp channels.json
+
+          echo "Updated channels.json:"
+          cat channels.json
+
+      - name: Commit channels.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add channels.json
+          git commit -m "Update ${{ steps.params.outputs.channel }} channel to ${{ steps.params.outputs.frontend_version }}" || echo "No changes to commit"
+          git push
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -110,36 +131,59 @@ jobs:
           echo "Frontend deployed to dist/${CHANNEL}/"
           ls -la "dist/${CHANNEL}/"
 
-      - name: Download existing channel builds
+      - name: Download other channel builds from GitHub releases
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           CURRENT_CHANNEL="${{ steps.params.outputs.channel }}"
 
-          # For each OTHER channel, try to download from current deployment
+          # Read channels.json to get versions for other channels
           for channel in stable beta nightly; do
             if [ "$channel" = "$CURRENT_CHANNEL" ]; then
               echo "Skipping ${channel} - we're deploying this one"
               continue
             fi
 
-            echo "Checking for existing ${channel} build..."
-            mkdir -p "dist/${channel}"
+            # Get version from channels.json
+            VERSION=$(jq -r --arg ch "$channel" '.[$ch] // empty' channels.json)
 
-            # Check if channel exists by fetching version.json
-            if curl -sL --fail "https://app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
-              echo "Found existing ${channel} build, downloading..."
+            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+              echo "No version configured for ${channel}, skipping"
+              continue
+            fi
 
-              # Download all files from the channel recursively
-              cd dist
-              wget -q -r -np -nH -R "index.html*" \
-                "https://app.music-assistant.io/${channel}/" \
-                2>/dev/null || true
-              cd ..
+            echo "Downloading ${channel} frontend v${VERSION}..."
 
-              echo "Downloaded ${channel} build"
+            # Create temp directory
+            mkdir -p "/tmp/${channel}"
+
+            # Download the wheel from GitHub releases
+            WHEEL_NAME="music_assistant_frontend-${VERSION}-py3-none-any.whl"
+            if gh release download "${VERSION}" \
+              --repo music-assistant/frontend \
+              --pattern "${WHEEL_NAME}" \
+              --dir "/tmp/${channel}" 2>/dev/null; then
+
+              # Extract the wheel
+              unzip -q "/tmp/${channel}/${WHEEL_NAME}" -d "/tmp/${channel}/extracted"
+
+              # Copy to channel subdirectory
+              mkdir -p "dist/${channel}"
+              cp -r "/tmp/${channel}/extracted/music_assistant_frontend/"* "dist/${channel}/"
+
+              # Create version.json
+              cat > "dist/${channel}/version.json" << EOF
+          {
+            "channel": "${channel}",
+            "frontend_version": "${VERSION}",
+            "deployed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+              echo "Restored ${channel} build (v${VERSION})"
             else
-              echo "No existing ${channel} build found"
-              rm -rf "dist/${channel}"
+              echo "Failed to download ${channel} frontend v${VERSION}"
             fi
           done
 

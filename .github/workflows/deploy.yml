@@ -35,29 +35,52 @@ jobs:
       - name: Build portal
         run: npm run build
 
-      - name: Download existing frontend builds
+      - name: Download frontend builds from GitHub releases
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Try to download existing channel builds from current deployment
+          # Read channels.json to get versions for each channel
           for channel in stable beta nightly; do
-            echo "Checking for existing ${channel} build..."
-            mkdir -p "dist/${channel}"
+            # Get version from channels.json
+            VERSION=$(jq -r --arg ch "$channel" '.[$ch] // empty' channels.json)
 
-            # Check if channel exists by fetching version.json
-            if curl -sL --fail "https://app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
-              echo "Found existing ${channel} build, downloading..."
+            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+              echo "No version configured for ${channel}, skipping"
+              continue
+            fi
 
-              # Download all files from the channel recursively
-              cd dist
-              wget -q -r -np -nH -R "index.html*" \
-                "https://app.music-assistant.io/${channel}/" \
-                2>/dev/null || true
-              cd ..
+            echo "Downloading ${channel} frontend v${VERSION}..."
 
-              echo "Downloaded ${channel} build"
+            # Create temp directory
+            mkdir -p "/tmp/${channel}"
+
+            # Download the wheel from GitHub releases
+            WHEEL_NAME="music_assistant_frontend-${VERSION}-py3-none-any.whl"
+            if gh release download "${VERSION}" \
+              --repo music-assistant/frontend \
+              --pattern "${WHEEL_NAME}" \
+              --dir "/tmp/${channel}" 2>/dev/null; then
+
+              # Extract the wheel
+              unzip -q "/tmp/${channel}/${WHEEL_NAME}" -d "/tmp/${channel}/extracted"
+
+              # Copy to channel subdirectory
+              mkdir -p "dist/${channel}"
+              cp -r "/tmp/${channel}/extracted/music_assistant_frontend/"* "dist/${channel}/"
+
+              # Create version.json
+              cat > "dist/${channel}/version.json" << EOF
+          {
+            "channel": "${channel}",
+            "frontend_version": "${VERSION}",
+            "deployed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+              echo "Restored ${channel} build (v${VERSION})"
             else
-              echo "No existing ${channel} build found"
-              rm -rf "dist/${channel}"
+              echo "Failed to download ${channel} frontend v${VERSION}"
             fi
           done
 
