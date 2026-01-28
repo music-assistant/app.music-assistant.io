@@ -1,5 +1,5 @@
 /* Music Assistant Remote Connection Portal
-   Styling to match the Music Assistant frontend */
+   Styling to match the Music Assistant frontend Login.vue */
 
 :root {
   /* Light theme - matching frontend */
@@ -16,7 +16,7 @@
   --ma-input-bg: rgba(0, 0, 0, 0.03);
   --ma-input-focus-bg: rgba(3, 169, 244, 0.05);
   --ma-error: #d32f2f;
-  --ma-radius: 12px;
+  --ma-radius: 24px;
   --ma-radius-sm: 10px;
 }
 
@@ -58,13 +58,13 @@ body {
 
 #app {
   width: 100%;
-  max-width: 420px;
-  padding: 24px;
+  max-width: 460px;
+  padding: 16px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
   #app {
-    padding: 12px;
+    padding: 8px;
   }
 }
 
@@ -73,7 +73,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
   animation: fadeIn 0.3s ease-in;
 }
 
@@ -90,107 +89,195 @@ body {
   }
 }
 
-/* Logo */
-.logo-container {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.logo.error {
-  filter: grayscale(1) opacity(0.5);
-}
-
-@media (max-width: 480px) {
-  .logo-container {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-/* Typography */
-h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  text-align: center;
-}
-
-h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--ma-foreground);
-  margin-bottom: 16px;
-}
-
-.subtitle {
-  color: var(--ma-text-secondary);
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.25rem;
-  }
-
-  h2 {
-    font-size: 1.125rem;
-  }
-
-  .subtitle {
-    font-size: 0.8125rem;
-  }
-}
-
-/* Cards */
-.card {
+/* Login Card - matching frontend */
+.login-card {
   width: 100%;
   background: var(--ma-card);
   border: 1px solid var(--ma-border);
   border-radius: var(--ma-radius);
-  padding: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-@media (max-width: 480px) {
-  .card {
-    padding: 20px;
+@media (max-width: 500px) {
+  .login-card {
+    padding: 1.25rem;
   }
 }
 
-.server-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
+/* Login Header */
+.login-header {
   text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.server-name {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--ma-foreground);
+@media (max-width: 500px) {
+  .login-header {
+    margin-bottom: 1rem;
+  }
 }
 
-.server-version {
+.login-logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+}
+
+.login-logo.error {
+  filter: grayscale(1) opacity(0.5);
+}
+
+@media (max-width: 500px) {
+  .login-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+@media (max-width: 500px) {
+  .login-title {
+    font-size: 1.25rem;
+  }
+}
+
+.login-subtitle {
   font-size: 0.875rem;
   color: var(--ma-text-secondary);
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 500px) {
+  .login-subtitle {
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Remote Info Section */
+.remote-info {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.cloud-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--ma-primary);
+  margin-bottom: 0.5rem;
+}
+
+.remote-info-text {
+  font-size: 0.875rem;
+  color: var(--ma-text-secondary);
+}
+
+/* Remote ID Section */
+.remote-id-section {
+  margin-bottom: 1rem;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.label-row label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ma-foreground);
+  margin: 0;
+}
+
+.scan-qr-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--ma-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.scan-qr-link:hover {
+  background: var(--ma-input-focus-bg);
+}
+
+.scan-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Remote ID Inputs - 4 boxes without separators */
+.remote-id-inputs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 500px) {
+  .remote-id-inputs {
+    gap: 4px;
+  }
+}
+
+.remote-id-input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 14px 8px;
+  background: var(--ma-input-bg);
+  border: 1px solid var(--ma-border);
+  border-radius: var(--ma-radius-sm);
+  color: var(--ma-foreground);
+  font-size: 1rem;
+  font-family: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.remote-id-input:focus {
+  outline: none;
+  border-color: var(--ma-primary);
+  background: var(--ma-input-focus-bg);
+}
+
+/* Proportional widths based on character count */
+.remote-id-input.segment-8 {
+  flex: 8;
+}
+
+.remote-id-input.segment-5 {
+  flex: 5;
+}
+
+@media (max-width: 500px) {
+  .remote-id-input {
+    padding: 12px 4px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Help text */
+.help-text {
+  font-size: 0.75rem;
+  color: var(--ma-text-secondary);
+  line-height: 1.5;
 }
 
 /* Buttons */
@@ -221,11 +308,6 @@ h3 {
 
 .btn.primary:hover:not(:disabled) {
   background: #0288d1;
-  transform: translateY(-1px);
-}
-
-.btn.primary:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 .btn.secondary {
@@ -243,139 +325,61 @@ h3 {
   width: 100%;
 }
 
-.button-row {
-  display: flex;
-  gap: 12px;
-}
-
-.button-row .btn {
-  flex: 1;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* Form elements */
-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ma-foreground);
-  margin-bottom: 8px;
-}
-
-input[type="text"] {
-  padding: 14px 16px;
-  background: var(--ma-input-bg);
-  border: 1px solid var(--ma-border);
-  border-radius: var(--ma-radius-sm);
-  color: var(--ma-foreground);
-  font-size: 1rem;
-  font-family: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", monospace;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  border-color: var(--ma-primary);
-  background: var(--ma-input-focus-bg);
-  box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
-}
-
-input[type="text"]::placeholder {
-  color: var(--ma-text-tertiary);
-  text-transform: none;
-  letter-spacing: normal;
-  font-family: inherit;
-}
-
-/* Segmented Remote ID inputs */
-.remote-id-inputs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.remote-id-input {
-  flex: 1;
-  min-width: 0;
+/* Footer */
+.login-footer {
+  margin-top: 1.5rem;
   text-align: center;
-  padding: 16px 6px;
-  font-size: 1.125rem;
-  letter-spacing: 0.08em;
 }
 
-/* Proportional widths based on character count */
-.remote-id-input.segment-8 {
-  flex: 8;
+@media (max-width: 500px) {
+  .login-footer {
+    margin-top: 1rem;
+  }
 }
 
-.remote-id-input.segment-5 {
-  flex: 5;
+.ohf-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--ma-text-secondary);
+  font-size: 0.75rem;
+  transition: opacity 0.2s ease;
 }
 
-.remote-id-separator {
-  color: var(--ma-text-tertiary);
-  font-size: 1.25rem;
-  font-weight: 500;
+.ohf-link:hover {
+  opacity: 0.7;
+}
+
+.ohf-icon {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
-@media (max-width: 480px) {
-  .remote-id-inputs {
-    gap: 4px;
+@media (max-width: 500px) {
+  .ohf-link {
+    font-size: 0.6875rem;
+    flex-wrap: wrap;
   }
 
-  .remote-id-input {
-    padding: 14px 4px;
-    font-size: 1rem;
-  }
-
-  .remote-id-separator {
-    font-size: 1rem;
+  .ohf-icon {
+    width: 14px;
+    height: 14px;
   }
 }
 
-/* Divider */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  margin: 16px 0;
+/* Connecting Content */
+.connecting-content {
+  text-align: center;
+  padding: 1.5rem 0;
 }
 
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--ma-border);
-}
-
-.divider span {
-  color: var(--ma-text-tertiary);
+.status-text {
+  color: var(--ma-text-secondary);
   font-size: 0.875rem;
-  text-transform: lowercase;
-}
-
-/* QR Reader */
-.qr-reader {
-  width: 100%;
-  aspect-ratio: 1;
-  background: var(--ma-background);
-  border-radius: var(--ma-radius-sm);
-  overflow: hidden;
-  margin-top: 16px;
-}
-
-.qr-reader.hidden {
-  display: none;
+  margin-top: 1rem;
 }
 
 /* Spinner */
@@ -386,6 +390,7 @@ input[type="text"]::placeholder {
   border-top-color: var(--ma-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin: 0 auto;
 }
 
 @keyframes spin {
@@ -400,37 +405,48 @@ input[type="text"]::placeholder {
   text-align: center;
   font-size: 0.875rem;
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
-/* Help text */
-.help-text {
-  font-size: 0.8125rem;
-  color: var(--ma-text-secondary);
+/* Saved connection */
+.saved-connection {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--ma-input-bg);
+  border-radius: var(--ma-radius-sm);
+}
+
+.saved-connection.hidden {
+  display: none;
+}
+
+.server-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
   text-align: center;
-  line-height: 1.5;
 }
 
-.help-text strong {
-  color: var(--ma-foreground);
+.server-name {
+  font-size: 1rem;
   font-weight: 500;
+  color: var(--ma-foreground);
 }
 
-/* Status text in connecting view */
-#connecting p,
+.server-version {
+  font-size: 0.875rem;
+  color: var(--ma-text-secondary);
+}
+
+/* Loading view */
+#loading {
+  gap: 1rem;
+}
+
 #loading p {
   color: var(--ma-text-secondary);
   font-size: 0.875rem;
-}
-
-/* Error view specific styles */
-#error .card {
-  margin-top: 16px;
-  margin-bottom: 16px;
-}
-
-#error .btn.primary {
-  margin-top: 8px;
 }
 
 /* QR Dialog overlay */
