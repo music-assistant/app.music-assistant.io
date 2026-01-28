@@ -10,7 +10,6 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="apple-touch-icon" href="/logo.svg" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div id="app">
@@ -37,13 +36,12 @@
 
           <!-- QR Scanner -->
           <div id="qr-section">
-            <button id="scan-qr-btn" class="btn primary full-width">
+            <button id="scan-qr-btn" class="btn secondary full-width">
               <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 11h2v2H3v-2zm16 0h2v2h-2v-2zm-8 8h2v2h-2v-2zm0-16h2v2h-2V3zM3 3h6v6H3V3zm2 2v2h2V5H5zm14-2h-6v6h6V3zm-2 2v2h-2V5h2zM3 15h6v6H3v-6zm2 2v2h2v-2H5zm16 0h-2v2h-2v-2h2v-2h2v2zm-4 2v2h-2v-2h2zm2-8h2v4h-4v-2h2v-2zm-4 0h2v2h-2v-2zm-6 0h2v4H7v-2h2v-2z"/>
               </svg>
               Scan QR Code
             </button>
-            <div id="qr-reader" class="qr-reader hidden"></div>
           </div>
 
           <div class="divider">
@@ -52,15 +50,48 @@
 
           <!-- Manual entry -->
           <div id="manual-section">
-            <label for="remote-id-input">Enter Remote ID</label>
-            <input
-              type="text"
-              id="remote-id-input"
-              placeholder="XXXXXXXXXXXXXXXXXXXXXXXXXX"
-              maxlength="26"
-              autocomplete="off"
-              autocapitalize="characters"
-            />
+            <label>Enter Remote ID</label>
+            <div class="remote-id-inputs">
+              <input
+                type="text"
+                id="remote-id-0"
+                class="remote-id-input segment-8"
+                maxlength="8"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="XXXXXXXX"
+              />
+              <span class="remote-id-separator">-</span>
+              <input
+                type="text"
+                id="remote-id-1"
+                class="remote-id-input segment-5"
+                maxlength="5"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="XXXXX"
+              />
+              <span class="remote-id-separator">-</span>
+              <input
+                type="text"
+                id="remote-id-2"
+                class="remote-id-input segment-5"
+                maxlength="5"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="XXXXX"
+              />
+              <span class="remote-id-separator">-</span>
+              <input
+                type="text"
+                id="remote-id-3"
+                class="remote-id-input segment-8"
+                maxlength="8"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="XXXXXXXX"
+              />
+            </div>
             <button id="connect-btn" class="btn primary full-width" disabled>
               Connect
             </button>
@@ -102,6 +133,25 @@
         </div>
 
         <button id="retry-btn" class="btn primary">Try Again</button>
+      </div>
+
+      <!-- QR Scanner Dialog -->
+      <div id="qr-dialog" class="dialog-overlay hidden">
+        <div class="dialog-card">
+          <div class="dialog-header">
+            <h3>Scan QR Code</h3>
+            <button id="close-qr-btn" class="dialog-close" aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+            </button>
+          </div>
+          <p class="dialog-hint">
+            Point your camera at the QR code shown in your Music Assistant server settings.
+          </p>
+          <div id="qr-reader" class="qr-reader"></div>
+          <p id="qr-error" class="qr-error hidden"></p>
+        </div>
       </div>
     </div>
 

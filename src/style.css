@@ -267,7 +267,6 @@ label {
 }
 
 input[type="text"] {
-  width: 100%;
   padding: 14px 16px;
   background: var(--ma-input-bg);
   border: 1px solid var(--ma-border);
@@ -277,7 +276,6 @@ input[type="text"] {
   font-family: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  margin-bottom: 16px;
   transition: all 0.2s ease;
 }
 
@@ -293,6 +291,52 @@ input[type="text"]::placeholder {
   text-transform: none;
   letter-spacing: normal;
   font-family: inherit;
+}
+
+/* Segmented Remote ID inputs */
+.remote-id-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.remote-id-input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 14px 8px;
+}
+
+/* Proportional widths based on character count */
+.remote-id-input.segment-8 {
+  flex: 8;
+}
+
+.remote-id-input.segment-5 {
+  flex: 5;
+}
+
+.remote-id-separator {
+  color: var(--ma-text-tertiary);
+  font-size: 1rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .remote-id-inputs {
+    gap: 2px;
+  }
+
+  .remote-id-input {
+    padding: 12px 4px;
+    font-size: 0.875rem;
+  }
+
+  .remote-id-separator {
+    font-size: 0.875rem;
+  }
 }
 
 /* Divider */
@@ -385,4 +429,118 @@ input[type="text"]::placeholder {
 
 #error .btn.primary {
   margin-top: 8px;
+}
+
+/* QR Dialog overlay */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog-overlay.hidden {
+  display: none;
+}
+
+.dialog-card {
+  background: var(--ma-card);
+  border: 1px solid var(--ma-border);
+  border-radius: var(--ma-radius);
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+  color: var(--ma-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.dialog-close:hover {
+  background: var(--ma-input-bg);
+  color: var(--ma-foreground);
+}
+
+.dialog-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dialog-hint {
+  font-size: 0.875rem;
+  color: var(--ma-text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* QR Reader container */
+.qr-reader {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+  border-radius: var(--ma-radius-sm);
+  overflow: hidden;
+}
+
+.qr-reader video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qr-error {
+  color: var(--ma-error);
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(211, 47, 47, 0.1);
+  border-radius: var(--ma-radius-sm);
+}
+
+.qr-error.hidden {
+  display: none;
 }
