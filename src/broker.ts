@@ -38,6 +38,9 @@ export interface SavedConnection {
 }
 
 const STORAGE_KEY = "ma_saved_connection";
+// Frontend storage keys (for migration from existing users)
+const FRONTEND_REMOTE_ID_KEY = "mass_remote_id";
+const FRONTEND_TOKEN_KEY = "ma_access_token";
 
 /**
  * Determine release channel from version string
@@ -55,19 +58,44 @@ export function getChannelFromVersion(
  */
 export function saveConnection(connection: SavedConnection): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(connection));
+  // Also save the remote ID in the frontend's expected format for seamless handoff
+  localStorage.setItem(FRONTEND_REMOTE_ID_KEY, connection.remoteId);
 }
 
 /**
  * Load saved connection from localStorage
+ * Also checks for legacy frontend storage keys for migration
  */
 export function loadSavedConnection(): SavedConnection | null {
+  // First check our own storage
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored) as SavedConnection;
-  } catch {
-    return null;
+  if (stored) {
+    try {
+      return JSON.parse(stored) as SavedConnection;
+    } catch {
+      // Continue to check frontend keys
+    }
   }
+
+  // Check for existing frontend remote ID (migration case)
+  // This handles users who previously connected via the frontend directly
+  const frontendRemoteId = localStorage.getItem(FRONTEND_REMOTE_ID_KEY);
+  const hasToken = localStorage.getItem(FRONTEND_TOKEN_KEY);
+
+  if (frontendRemoteId && hasToken && isValidRemoteId(frontendRemoteId)) {
+    // We have a remote ID and token from the frontend
+    // Return a partial SavedConnection that will trigger reconnect
+    // The actual version/channel will be determined during connection
+    return {
+      remoteId: frontendRemoteId,
+      serverName: "Saved Server",
+      serverVersion: "unknown",
+      channel: "stable", // Will be updated after connection
+      lastConnected: 0,
+    };
+  }
+
+  return null;
 }
 
 /**

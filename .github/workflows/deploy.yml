@@ -39,15 +39,22 @@ jobs:
         continue-on-error: true
         run: |
           # Try to download existing channel builds from current deployment
-          mkdir -p dist/stable dist/beta dist/nightly
-
           for channel in stable beta nightly; do
             echo "Checking for existing ${channel} build..."
-            if curl -sL --fail "https://app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json"; then
-              echo "Found existing ${channel} build, will preserve it"
-              # Download the full channel build
-              # Note: This is a simplified approach - in production you might want to
-              # store builds as artifacts or in a separate branch
+            mkdir -p "dist/${channel}"
+
+            # Check if channel exists by fetching version.json
+            if curl -sL --fail "https://music-assistant.github.io/app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
+              echo "Found existing ${channel} build, downloading..."
+
+              # Download all files from the channel recursively
+              cd dist
+              wget -q -r -np -nH --cut-dirs=1 -R "index.html*" \
+                "https://music-assistant.github.io/app.music-assistant.io/${channel}/" \
+                2>/dev/null || true
+              cd ..
+
+              echo "Downloaded ${channel} build"
             else
               echo "No existing ${channel} build found"
               rm -rf "dist/${channel}"

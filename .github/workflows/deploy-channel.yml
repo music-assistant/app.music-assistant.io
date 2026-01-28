@@ -1,0 +1,159 @@
+name: Deploy Frontend Channel
+
+on:
+  repository_dispatch:
+    types: [frontend-update]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - stable
+          - beta
+          - nightly
+      frontend_version:
+        description: "Frontend version (e.g., 2.13.2)"
+        required: true
+        type: string
+
+# Allow only one concurrent deployment per channel
+concurrency:
+  group: deploy-${{ github.event.client_payload.channel || inputs.channel }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-channel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get parameters
+        id: params
+        run: |
+          # Handle both repository_dispatch and workflow_dispatch
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            CHANNEL="${{ github.event.client_payload.channel }}"
+            FRONTEND_VERSION="${{ github.event.client_payload.frontend_version }}"
+          else
+            CHANNEL="${{ inputs.channel }}"
+            FRONTEND_VERSION="${{ inputs.frontend_version }}"
+          fi
+
+          echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
+          echo "frontend_version=${FRONTEND_VERSION}" >> $GITHUB_OUTPUT
+          echo "Channel: ${CHANNEL}"
+          echo "Frontend version: ${FRONTEND_VERSION}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build portal
+        run: npm run build
+
+      - name: Download and extract frontend from GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CHANNEL="${{ steps.params.outputs.channel }}"
+          FRONTEND_VERSION="${{ steps.params.outputs.frontend_version }}"
+
+          echo "Downloading frontend v${FRONTEND_VERSION} from GitHub releases..."
+
+          # Create temp directory for download
+          mkdir -p /tmp/frontend
+
+          # Download the wheel from GitHub releases
+          WHEEL_NAME="music_assistant_frontend-${FRONTEND_VERSION}-py3-none-any.whl"
+          gh release download "${FRONTEND_VERSION}" \
+            --repo music-assistant/frontend \
+            --pattern "${WHEEL_NAME}" \
+            --dir /tmp/frontend
+
+          WHEEL_FILE="/tmp/frontend/${WHEEL_NAME}"
+          echo "Downloaded: ${WHEEL_FILE}"
+
+          # Extract the wheel (it's a zip file)
+          unzip -q "${WHEEL_FILE}" -d /tmp/frontend/extracted
+
+          # The frontend files are in music_assistant_frontend/
+          FRONTEND_DIR="/tmp/frontend/extracted/music_assistant_frontend"
+
+          # Copy to channel subdirectory in dist
+          mkdir -p "dist/${CHANNEL}"
+          cp -r "${FRONTEND_DIR}/"* "dist/${CHANNEL}/"
+
+          # Create version.json for the channel
+          cat > "dist/${CHANNEL}/version.json" << EOF
+          {
+            "channel": "${CHANNEL}",
+            "frontend_version": "${FRONTEND_VERSION}",
+            "deployed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+          echo "Frontend deployed to dist/${CHANNEL}/"
+          ls -la "dist/${CHANNEL}/"
+
+      - name: Download existing channel builds
+        continue-on-error: true
+        run: |
+          CURRENT_CHANNEL="${{ steps.params.outputs.channel }}"
+
+          # For each OTHER channel, try to download from current deployment
+          for channel in stable beta nightly; do
+            if [ "$channel" = "$CURRENT_CHANNEL" ]; then
+              echo "Skipping ${channel} - we're deploying this one"
+              continue
+            fi
+
+            echo "Checking for existing ${channel} build..."
+            mkdir -p "dist/${channel}"
+
+            # Check if channel exists by fetching version.json
+            if curl -sL --fail "https://music-assistant.github.io/app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
+              echo "Found existing ${channel} build, downloading..."
+
+              # Download all files from the channel recursively
+              cd dist
+              wget -q -r -np -nH --cut-dirs=1 -R "index.html*" \
+                "https://music-assistant.github.io/app.music-assistant.io/${channel}/" \
+                2>/dev/null || true
+              cd ..
+
+              echo "Downloaded ${channel} build"
+            else
+              echo "No existing ${channel} build found"
+              rm -rf "dist/${channel}"
+            fi
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Output deployment info
+        run: |
+          echo "Deployed channel: ${{ steps.params.outputs.channel }}"
+          echo "Frontend version: ${{ steps.params.outputs.frontend_version }}"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}${{ steps.params.outputs.channel }}/"

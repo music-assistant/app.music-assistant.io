@@ -297,7 +297,7 @@ input[type="text"]::placeholder {
 .remote-id-inputs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 16px;
 }
 
@@ -305,7 +305,9 @@ input[type="text"]::placeholder {
   flex: 1;
   min-width: 0;
   text-align: center;
-  padding: 14px 8px;
+  padding: 16px 6px;
+  font-size: 1.125rem;
+  letter-spacing: 0.08em;
 }
 
 /* Proportional widths based on character count */
@@ -319,23 +321,23 @@ input[type="text"]::placeholder {
 
 .remote-id-separator {
   color: var(--ma-text-tertiary);
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 500;
   flex-shrink: 0;
 }
 
 @media (max-width: 480px) {
   .remote-id-inputs {
-    gap: 2px;
+    gap: 4px;
   }
 
   .remote-id-input {
-    padding: 12px 4px;
-    font-size: 0.875rem;
+    padding: 14px 4px;
+    font-size: 1rem;
   }
 
   .remote-id-separator {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 }
 
