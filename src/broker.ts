@@ -48,6 +48,8 @@ const FRONTEND_TOKEN_KEY = "ma_access_token";
 export function getChannelFromVersion(
   version: string
 ): "stable" | "beta" | "nightly" {
+  // Dev instances report version 0.0.0
+  if (version === "0.0.0") return "nightly";
   if (version.includes(".dev")) return "nightly";
   if (version.includes("b")) return "beta";
   return "stable";

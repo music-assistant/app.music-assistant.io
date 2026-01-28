@@ -44,13 +44,13 @@ jobs:
             mkdir -p "dist/${channel}"
 
             # Check if channel exists by fetching version.json
-            if curl -sL --fail "https://music-assistant.github.io/app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
+            if curl -sL --fail "https://app.music-assistant.io/${channel}/version.json" -o "dist/${channel}/version.json" 2>/dev/null; then
               echo "Found existing ${channel} build, downloading..."
 
               # Download all files from the channel recursively
               cd dist
-              wget -q -r -np -nH --cut-dirs=1 -R "index.html*" \
-                "https://music-assistant.github.io/app.music-assistant.io/${channel}/" \
+              wget -q -r -np -nH -R "index.html*" \
+                "https://app.music-assistant.io/${channel}/" \
                 2>/dev/null || true
               cd ..
 
