@@ -163,32 +163,39 @@
       // Register cleanup service worker for PWA migration
       // This handles users who have the old PWA installed pointing to /
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-          .then(registration => {
-            console.log('Cleanup SW registered:', registration);
-
-            // Listen for updates
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'activated') {
-                    console.log('Cleanup SW activated');
-                  }
-                });
-              }
-            });
-          })
-          .catch(err => console.log('SW registration failed:', err));
-
-        // Listen for reload messages from the service worker
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data && event.data.type === 'FORCE_RELOAD') {
-            console.log('Received force reload message from SW');
-            // Force a hard reload to clear everything
-            window.location.reload();
-          }
-        });
+        const CLEANUP_FLAG = 'ma_sw_cleanup_done';
+        
+        // Check if cleanup was already done this session
+        if (sessionStorage.getItem(CLEANUP_FLAG)) {
+          console.log('SW cleanup already performed this session');
+        } else {
+          // Check if there's an existing service worker that needs cleanup
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            if (registrations.length > 0) {
+              console.log('Found existing SW registrations, starting cleanup');
+              
+              // Mark that we're doing cleanup to prevent loops
+              sessionStorage.setItem(CLEANUP_FLAG, 'true');
+              
+              // Register cleanup worker
+              navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then(registration => {
+                  console.log('Cleanup SW registered:', registration);
+                })
+                .catch(err => console.log('SW registration failed:', err));
+              
+              // Listen for reload messages from the service worker
+              navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'FORCE_RELOAD') {
+                  console.log('Received force reload message from SW');
+                  window.location.reload();
+                }
+              });
+            } else {
+              console.log('No existing SW found, skipping cleanup');
+            }
+          });
+        }
       }
     </script>
   </body>
