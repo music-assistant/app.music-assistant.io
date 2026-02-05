@@ -379,16 +379,24 @@ function init(): void {
   // Always set up common event handlers
   setupEventHandlers();
 
-  // Check for saved connection - auto-reconnect on return visits
+  // Check for saved connection - redirect directly if we know the channel
   const saved = loadSavedConnection();
 
+  if (saved && saved.channel && saved.serverVersion !== "unknown") {
+    // We have a complete saved connection with a known channel
+    // Redirect directly to the channel instead of reconnecting
+    console.log(`Redirecting to saved channel: ${saved.channel}`);
+    redirectToFrontend(saved.channel, saved.remoteId);
+    return;
+  }
+
   if (saved) {
-    // Pre-fill the remote ID fields
+    // We have a remote ID but don't know the channel yet (migration case)
+    // Need to connect to determine the channel
     setRemoteIdFromString(saved.remoteId);
-    // Show saved server info in the connecting view and auto-connect
     updateStatus(`Connecting to ${saved.serverName}...`);
     connectToServer(saved.remoteId);
-    return; // Skip showing the connect view
+    return;
   }
 
   // No saved connection - show connection UI
