@@ -10,6 +10,29 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="apple-touch-icon" href="/logo.svg" />
     <link rel="manifest" href="/manifest.json" />
+    <script>
+      // Fast redirect check - runs before any content renders
+      // This prevents the flash by redirecting before the page is painted
+      (function() {
+        try {
+          const STORAGE_KEY = 'ma_saved_connection';
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const saved = JSON.parse(stored);
+            // If we have a complete saved connection with a known channel, redirect immediately
+            if (saved.channel && saved.serverVersion !== 'unknown' && saved.remoteId) {
+              const url = `/${saved.channel}/?remote_id=${encodeURIComponent(saved.remoteId)}`;
+              window.location.replace(url);
+              // Stop execution - we're redirecting
+              return;
+            }
+          }
+        } catch (e) {
+          // If anything fails, continue loading the broker page
+          console.log('Fast redirect check failed:', e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app">
