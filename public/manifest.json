@@ -3,6 +3,7 @@
   "short_name": "Music Assistant",
   "description": "Connect to your Music Assistant server remotely",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#181818",
   "theme_color": "#03a9f4",

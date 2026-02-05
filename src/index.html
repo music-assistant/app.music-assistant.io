@@ -159,5 +159,37 @@
     </div>
 
     <script type="module" src="/main.ts"></script>
+    <script>
+      // Register cleanup service worker for PWA migration
+      // This handles users who have the old PWA installed pointing to /
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(registration => {
+            console.log('Cleanup SW registered:', registration);
+
+            // Listen for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'activated') {
+                    console.log('Cleanup SW activated');
+                  }
+                });
+              }
+            });
+          })
+          .catch(err => console.log('SW registration failed:', err));
+
+        // Listen for reload messages from the service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'FORCE_RELOAD') {
+            console.log('Received force reload message from SW');
+            // Force a hard reload to clear everything
+            window.location.reload();
+          }
+        });
+      }
+    </script>
   </body>
 </html>
