@@ -48,6 +48,8 @@ const elements = {
 
 let connector: RemoteConnector | null = null;
 let currentRemoteId: string | null = null;
+// Incoming URL params captured at init time, forwarded through the channel redirect
+let incomingParams = new URLSearchParams();
 let html5QrCode: any = null;
 
 /**
@@ -269,9 +271,10 @@ async function connectToServer(remoteId: string): Promise<void> {
     // Small delay to show success state
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Redirect to appropriate frontend
+    // Redirect to appropriate frontend, forwarding any incoming URL params
     const channel = getChannelFromVersion(serverInfo.server_version);
-    redirectToFrontend(channel, remoteId);
+    incomingParams.set("remote_id", remoteId);
+    redirectToFrontend(channel, incomingParams);
   } catch (error) {
     connector?.disconnect();
     connector = null;
@@ -351,6 +354,10 @@ async function onQrCodeSuccess(decodedText: string): Promise<void> {
   try {
     const url = new URL(decodedText);
     extractedRemoteId = url.searchParams.get("remote_id");
+    // Capture all params from the QR URL for forwarding (join, code, etc.)
+    if (extractedRemoteId) {
+      incomingParams = url.searchParams;
+    }
   } catch {
     // Not a URL, check if it's a raw remote ID (26 alphanumeric characters)
     const cleanData = decodedText.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -379,6 +386,20 @@ function init(): void {
   // Always set up common event handlers
   setupEventHandlers();
 
+  // Capture incoming URL params (join, code, etc.) to forward through redirect
+  incomingParams = new URLSearchParams(window.location.search);
+  const urlRemoteId = incomingParams.get("remote_id");
+
+  // If remote_id is in URL, auto-connect with it (takes priority over saved connection)
+  if (urlRemoteId) {
+    const cleanId = urlRemoteId.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (cleanId.length === 26) {
+      setRemoteIdFromString(cleanId);
+      connectToServer(cleanId);
+      return;
+    }
+  }
+
   // Check for saved connection - redirect directly if we know the channel
   const saved = loadSavedConnection();
 
@@ -386,7 +407,8 @@ function init(): void {
     // We have a complete saved connection with a known channel
     // Redirect directly to the channel instead of reconnecting
     console.log(`Redirecting to saved channel: ${saved.channel}`);
-    redirectToFrontend(saved.channel, saved.remoteId);
+    incomingParams.set("remote_id", saved.remoteId);
+    redirectToFrontend(saved.channel, incomingParams);
     return;
   }
 
