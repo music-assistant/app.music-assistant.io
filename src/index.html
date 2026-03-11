@@ -21,7 +21,10 @@
             const saved = JSON.parse(stored);
             // If we have a complete saved connection with a known channel, redirect immediately
             if (saved.channel && saved.serverVersion !== 'unknown' && saved.remoteId) {
-              const url = `/${saved.channel}/?remote_id=${encodeURIComponent(saved.remoteId)}`;
+              // Forward any current URL params (join, code, etc.) through the redirect
+              var params = new URLSearchParams(window.location.search);
+              params.set('remote_id', saved.remoteId);
+              var url = '/' + saved.channel + '/?' + params.toString();
               window.location.replace(url);
               // Stop execution - we're redirecting
               return;

@@ -354,8 +354,8 @@ export class RemoteConnector {
  */
 export function redirectToFrontend(
   channel: "stable" | "beta" | "nightly",
-  remoteId: string
+  params: URLSearchParams
 ): void {
-  const url = `/${channel}/?remote_id=${encodeURIComponent(remoteId)}`;
+  const url = `/${channel}/?${params.toString()}`;
   window.location.href = url;
 }
