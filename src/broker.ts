@@ -51,7 +51,7 @@ export function getChannelFromVersion(
   // Dev instances report version 0.0.0
   if (version === "0.0.0") return "nightly";
   if (version.includes(".dev")) return "nightly";
-  if (version.includes("b")) return "beta";
+  if (version.includes("b") || version.includes("rc")) return "beta";
   return "stable";
 }
 
