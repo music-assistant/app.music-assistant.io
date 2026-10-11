@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- The inline script hash must match the script below; the build fails and prints the new hash when it does not. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'sha256-UEkeeBOAM0uF01qv5MJRIbPxTNQrxj0v2BzVRojPNF8='; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#181818" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <title>Music Assistant</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --ma-background: #f5f5f5;
+        --ma-foreground: #000000;
+        --ma-card: #ffffff;
+        --ma-primary: #03a9f4;
+        --ma-primary-foreground: #ffffff;
+        --ma-text-secondary: rgba(0, 0, 0, 0.6);
+        --ma-border: rgba(0, 0, 0, 0.1);
+        --ma-error: #d32f2f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ma-background: #181818;
+          --ma-foreground: #ffffff;
+          --ma-card: #232323;
+          --ma-text-secondary: rgba(255, 255, 255, 0.7);
+          --ma-border: rgba(255, 255, 255, 0.08);
+          --ma-error: #ff6b6b;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: var(--ma-background);
+        color: var(--ma-foreground);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: 400px;
+        padding: 32px 24px;
+        border: 1px solid var(--ma-border);
+        border-radius: 24px;
+        background: var(--ma-card);
+        text-align: center;
+      }
+      img {
+        width: 64px;
+        height: 64px;
+      }
+      h1 {
+        margin: 16px 0 8px;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      p {
+        margin: 8px 0 0;
+        color: var(--ma-text-secondary);
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+      #detail {
+        color: var(--ma-error);
+      }
+      a {
+        display: inline-block;
+        margin-top: 24px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        background: var(--ma-primary);
+        color: var(--ma-primary-foreground);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      [hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/logo.svg" alt="" />
+      <h1 id="title">Signing you in</h1>
+      <p id="message">One moment&hellip;</p>
+      <p id="detail" hidden></p>
+      <a id="open-app" hidden>Open the app</a>
+      <a id="home" href="/" hidden>Go to Music Assistant</a>
+    </main>
+    <script>
+      (() => {
+        "use strict";
+
+        const STATE_RE = /^[wn]\.[A-Za-z0-9_-]{20,128}$/;
+        const CODE_RE = /^[A-Za-z0-9._~-]{1,2048}$/;
+        const ERROR_RE = /^[a-z_]{1,64}$/;
+        const APP_CALLBACK_URL = "musicassistant://auth/callback";
+        const CHANNEL_NAME = "ma-external-login";
+        const PENDING_KEY_PREFIX = "ma.external_login.";
+        const ACK_TIMEOUT_MS = 400;
+        const MAX_DESCRIPTION_LENGTH = 300;
+
+        const result = readResult();
+        // the values are in memory now, keep the code out of the history and any later navigation
+        history.replaceState(null, "", location.pathname);
+
+        if (!result) {
+          show("Sign-in failed", "This sign-in link is not valid.");
+          showHome();
+          return;
+        }
+        if (result.error) {
+          showDetail(result.error_description || result.error);
+        }
+        const params = toParams(result);
+
+        if (result.state.startsWith("n.")) {
+          // Android Custom Tabs may block a navigation to the app without a user gesture
+          const appUrl = `${APP_CALLBACK_URL}?${params}`;
+          show("Back to the app", "Opening the Music Assistant app…");
+          const openApp = document.getElementById("open-app");
+          openApp.href = appUrl;
+          openApp.hidden = false;
+          location.replace(appUrl);
+          return;
+        }
+
+        // this tab started the sign-in itself, so it goes straight back to where it came from
+        const ownReturnUrl = readReturnUrl("sessionStorage", result.state, params);
+        if (ownReturnUrl) {
+          location.replace(ownReturnUrl);
+          return;
+        }
+
+        handToOpenApp(result, (acknowledged) => {
+          if (acknowledged) {
+            show("Back to Music Assistant", "You can close this tab.");
+            window.close();
+            return;
+          }
+          const returnUrl = readReturnUrl("localStorage", result.state, params);
+          // the portal root forwards the query to the frontend, which finishes the sign-in
+          location.replace(returnUrl || `/?${params}`);
+        });
+
+        /**
+         * Return the sign-in result from the query, or null when it is not a valid callback.
+         */
+        function readResult() {
+          const query = new URLSearchParams(location.search);
+          const value = (name) => {
+            const values = query.getAll(name);
+            return values.length === 1 ? values[0] : null;
+          };
+          const state = value("state");
+          const code = value("code");
+          const error = value("error");
+          if (!state || !STATE_RE.test(state)) return null;
+          if (code !== null && error === null && CODE_RE.test(code)) {
+            return { state, code };
+          }
+          if (error !== null && code === null && ERROR_RE.test(error)) {
+            const description = (value("error_description") || "").trim();
+            return { state, error, error_description: description.slice(0, MAX_DESCRIPTION_LENGTH) };
+          }
+          return null;
+        }
+
+        /**
+         * Return the outgoing query parameters, built from the validated result only.
+         */
+        function toParams(result) {
+          const params = new URLSearchParams();
+          if (result.code) {
+            params.set("code", result.code);
+          } else {
+            params.set("error", result.error);
+            if (result.error_description) {
+              params.set("error_description", result.error_description);
+            }
+          }
+          params.set("state", result.state);
+          return params;
+        }
+
+        /**
+         * Offer the result to an open app window and report whether one took it.
+         */
+        function handToOpenApp(result, done) {
+          if (typeof BroadcastChannel === "undefined") {
+            done(false);
+            return;
+          }
+          const channel = new BroadcastChannel(CHANNEL_NAME);
+          const finish = (acknowledged) => {
+            clearTimeout(timer);
+            channel.close();
+            done(acknowledged);
+          };
+          const timer = setTimeout(() => finish(false), ACK_TIMEOUT_MS);
+          channel.onmessage = (event) => {
+            const data = event.data;
+            if (data && data.type === "ack" && data.state === result.state) finish(true);
+          };
+          channel.postMessage({ type: CHANNEL_NAME, ...result });
+        }
+
+        /**
+         * Return the same-origin URL the pending sign-in returns to, with the result appended.
+         */
+        function readReturnUrl(storageName, state, params) {
+          let returnPath;
+          try {
+            // reading the storage itself throws when the browser blocks site data
+            returnPath = JSON.parse(window[storageName].getItem(PENDING_KEY_PREFIX + state) || "null")?.returnPath;
+          } catch {
+            return null;
+          }
+          // a path only: "//host" and "/\host" are read as another host
+          if (typeof returnPath !== "string" || !/^\/(?![/\\])/.test(returnPath)) return null;
+          const url = new URL(returnPath, location.origin);
+          if (url.origin !== location.origin) return null;
+          for (const name of ["code", "state", "error", "error_description"]) {
+            url.searchParams.delete(name);
+          }
+          for (const [name, value] of params) {
+            url.searchParams.set(name, value);
+          }
+          return url.href;
+        }
+
+        function show(title, message) {
+          document.getElementById("title").textContent = title;
+          document.getElementById("message").textContent = message;
+        }
+
+        function showDetail(text) {
+          const detail = document.getElementById("detail");
+          detail.textContent = text;
+          detail.hidden = false;
+        }
+
+        function showHome() {
+          document.getElementById("home").hidden = false;
+        }
+      })();
+    </script>
+  </body>
+</html>

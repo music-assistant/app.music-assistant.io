@@ -16,6 +16,7 @@ This portal enables remote WebRTC access to Music Assistant servers by:
 ```
 app.music-assistant.io/
 ├── index.html          # Connection portal (QR scanner, manual entry)
+├── auth/callback/      # Hands a sign-in result back to the web or mobile app
 ├── stable/             # Frontend build for stable channel
 ├── beta/               # Frontend build for beta channel
 └── nightly/            # Frontend build for nightly channel
