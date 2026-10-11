@@ -31,7 +31,10 @@ function checkCallbackCsp(): Plugin {
     name: "check-callback-csp",
     buildStart() {
       const html = readFileSync(resolve(__dirname, "public/auth/callback/index.html"), "utf8");
-      const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+      const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+      if (script === undefined) {
+        this.error("public/auth/callback/index.html: inline <script> not found");
+      }
       const hash = createHash("sha256").update(script).digest("base64");
       if (!html.includes(`script-src 'sha256-${hash}'`)) {
         this.error(`public/auth/callback/index.html: set the CSP to script-src 'sha256-${hash}'`);
